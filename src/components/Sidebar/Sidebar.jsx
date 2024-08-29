@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Home, Compass, PlaySquare, Clock, ThumbsUp, Film, Flame, ShoppingBag, Music2, Gamepad2, Newspaper, Trophy, Lightbulb, Shirt, ChevronRight, ChevronLeft, History, Clapperboard, ThumbsUp as LikeIcon } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Home, Compass, PlaySquare, Clock, ThumbsUp, Film, Flame, ShoppingBag, Music2, Gamepad2, Newspaper, Trophy, Lightbulb, Shirt, History, Clapperboard, ThumbsUp as LikeIcon } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
+import { toggleMenu } from '../../utils/navSlice'
 
 const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isMenu = useSelector((store) => store.nav.isMenuOpen)
   const [screenSize, setScreenSize] = useState('');
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
         setScreenSize('sm');
-        setIsCollapsed(true);
       } else if (window.innerWidth < 768) {
         setScreenSize('md');
-        setIsCollapsed(true);
       } else if (window.innerWidth < 1024) {
         setScreenSize('lg');
-        setIsCollapsed(false);
       } else {
         setScreenSize('xl');
-        setIsCollapsed(false);
       }
     };
 
@@ -62,11 +62,18 @@ const Sidebar = () => {
     }
   ], []);
 
-  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+  const handleItemClick = (path) => {
+    navigate(path);
+    if (screenSize === 'sm' || screenSize === 'md') {
+      dispatch(toggleMenu());
+    }
+  };
+
+  if (!isMenu) return null;
 
   return (
     <aside className={`
-      ${isCollapsed ? 'w-16 sm:w-20' : 'w-64'} 
+      w-64
       h-[calc(100vh-56px)] 
       bg-white 
       overflow-y-auto 
@@ -76,19 +83,10 @@ const Sidebar = () => {
       ease-in-out 
       ${screenSize === 'sm' || screenSize === 'md' ? 'fixed left-0 top-14 z-50' : 'sticky top-14'}
     `}>
-      {(screenSize === 'sm' || screenSize === 'md' || screenSize === 'lg') && (
-        <button
-          onClick={toggleSidebar}
-          className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
-      )}
-      <nav className={`p-2 ${isCollapsed ? 'pt-12' : ''}`}>
+      <nav className="p-2">
         {sidebarItems.map((section, sectionIndex) => (
           <React.Fragment key={sectionIndex}>
-            {!isCollapsed && section.title && (
+            {section.title && (
               <h3 className="px-4 py-2 text-sm font-semibold text-gray-500">{section.title}</h3>
             )}
             <ul className="mb-4">
@@ -96,20 +94,20 @@ const Sidebar = () => {
                 const isActive = location.pathname === item.path;
                 return (
                   <li key={itemIndex} className="mb-1">
-                    <Link
-                      to={item.path}
-                      className={`flex items-center p-2 rounded-lg transition-colors duration-200 ${
+                    <button
+                      onClick={() => handleItemClick(item.path)}
+                      className={`flex items-center p-2 rounded-lg transition-colors duration-200 w-full text-left ${
                         isActive ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-100'
-                      } ${isCollapsed ? 'justify-center' : ''}`}
+                      }`}
                     >
-                      <item.icon className={`w-6 h-6 ${isCollapsed ? '' : 'mr-4'} ${isActive ? 'text-red-600' : 'text-gray-600'}`} />
-                      {!isCollapsed && <span className={`text-sm ${isActive ? 'text-black' : 'text-gray-700'}`}>{item.label}</span>}
-                    </Link>
+                      <item.icon className={`w-6 h-6 mr-4 ${isActive ? 'text-red-600' : 'text-gray-600'}`} />
+                      <span className={`text-sm ${isActive ? 'text-black' : 'text-gray-700'}`}>{item.label}</span>
+                    </button>
                   </li>
                 );
               })}
             </ul>
-            {!isCollapsed && sectionIndex < sidebarItems.length - 1 && <hr className="my-2 border-gray-200" />}
+            {sectionIndex < sidebarItems.length - 1 && <hr className="my-2 border-gray-200" />}
           </React.Fragment>
         ))}
       </nav>
