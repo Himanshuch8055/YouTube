@@ -9,6 +9,7 @@ import History from './pages/History/History';
 import Yourvideos from './pages/Yourvideos/Yourvideos';
 import Likedvideos from './pages/Likedvideos/Likedvideos';
 import Trending from './pages/Trending/Trending';
+import Watch from './pages/Watch/Watch';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/your-videos" element={<Yourvideos />} />
           <Route path="/liked-videos" element={<Likedvideos />} />
           <Route path="/trending" element={<Trending />} />
+          <Route path="/watch" element={<Watch />} />
         </Routes>
       </Router>
     </Provider>

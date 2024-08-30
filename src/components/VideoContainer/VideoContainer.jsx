@@ -1,34 +1,89 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import VideoCard from '../VideoCard/VideoCard'
+import { YOUTUBE_VIDEO_API } from '../../utils/contants'
 
 const VideoContainer = () => {
   const [videos, setVideos] = useState([])
+  const [nextPageToken, setNextPageToken] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const observerTarget = useRef(null)
+
+  const fetchVideos = useCallback(async () => {
+    if (loading) return
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch(`${YOUTUBE_VIDEO_API}&maxResults=50${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch videos')
+      }
+      const data = await response.json()
+      setVideos(prevVideos => [...prevVideos, ...data.items])
+      setNextPageToken(data.nextPageToken || '')
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+      setError('Failed to load videos. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }, [nextPageToken, loading])
 
   useEffect(() => {
-    // Simulating API call to fetch videos
-    const fetchVideos = async () => {
-      // In a real application, you would fetch data from an API
-      const mockVideos = [
-        { id: 1, title: 'Python for Data Science', channel: 'DataWizard', views: '2.5M', timestamp: '1 week ago', thumbnail: 'https://i.ytimg.com/vi/LHBE6Q9XlzI/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '28:45', likes: '125K', dislikes: '2K', description: 'Learn Python for Data Science in this comprehensive tutorial.' },
-        { id: 2, title: 'Machine Learning Crash Course', channel: 'AI Enthusiast', views: '1.8M', timestamp: '3 days ago', thumbnail: 'https://i.ytimg.com/vi/GwIo3gDZCVQ/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '1:15:30', likes: '95K', dislikes: '1.5K', description: 'Get started with Machine Learning in this crash course for beginners.' },
-        { id: 3, title: 'Web Development in 2023', channel: 'FrontEnd Masters', views: '950K', timestamp: '5 days ago', thumbnail: 'https://i.ytimg.com/vi/VfGW0Qiy2I0/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '52:10', likes: '78K', dislikes: '800', description: 'Discover the latest trends and technologies in web development for 2023.' },
-        { id: 4, title: 'Blockchain Explained', channel: 'CryptoGuru', views: '1.5M', timestamp: '2 weeks ago', thumbnail: 'https://i.ytimg.com/vi/SSo_EIwHSd4/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '37:20', likes: '110K', dislikes: '3K', description: 'Understand the fundamentals of blockchain technology and its applications.' },
-        { id: 5, title: 'UI/UX Design Principles', channel: 'DesignPro', views: '750K', timestamp: '4 days ago', thumbnail: 'https://i.ytimg.com/vi/c9Wg6Cb_YlU/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '41:55', likes: '62K', dislikes: '500', description: 'Learn essential UI/UX design principles to create better user experiences.' },
-        { id: 6, title: 'JavaScript ES6+ Features', channel: 'CodeMaster', views: '1.2M', timestamp: '1 day ago', thumbnail: 'https://i.ytimg.com/vi/NCwa_xi0Uuc/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '45:30', likes: '88K', dislikes: '1K', description: 'Explore the powerful features of modern JavaScript (ES6+).' },
-        { id: 7, title: 'Docker for Beginners', channel: 'DevOps Guru', views: '800K', timestamp: '6 days ago', thumbnail: 'https://i.ytimg.com/vi/fqMOX6JJhGo/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '1:02:15', likes: '70K', dislikes: '900', description: 'Get started with Docker containerization in this beginner-friendly tutorial.' },
-        { id: 8, title: 'React Hooks Deep Dive', channel: 'ReactMaster', views: '1.1M', timestamp: '2 days ago', thumbnail: 'https://i.ytimg.com/vi/TNhaISOUy6Q/hqdefault.jpg', avatar: 'https://via.placeholder.com/88', duration: '56:40', likes: '92K', dislikes: '1.2K', description: 'Master React Hooks with this in-depth tutorial on functional components.' }
-      ]
-      setVideos(mockVideos)
+    fetchVideos()
+  }, [fetchVideos])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && nextPageToken && !loading) {
+          fetchVideos()
+        }
+      },
+      { threshold: 0.5, rootMargin: '100px' }
+    )
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current)
     }
 
-    fetchVideos()
-  }, [])
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current)
+      }
+    }
+  }, [nextPageToken, loading, fetchVideos])
+
+  if (error) {
+    return <div className="text-center text-red-500 p-4">{error}</div>
+  }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-8 p-4">
-      {videos.map(video => (
-        <VideoCard key={video.id} video={video} />
-      ))}
+    <div className="max-w-[2000px] mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-8 p-4">
+        {videos.map(video => (
+          <Link key={video.id} to={`/watch?v=${video.id}`}>
+            <VideoCard video={{
+              id: video.id,
+              title: video.snippet.title,
+              channel: video.snippet.channelTitle,
+              views: video.statistics.viewCount,
+              timestamp: new Date(video.snippet.publishedAt).toLocaleDateString(),
+              thumbnail: video.snippet.thumbnails.medium.url,
+              avatar: `https://yt3.ggpht.com/ytc/${video.snippet.channelId}`,
+              duration: video.contentDetails.duration,
+              likes: video.statistics.likeCount,
+              description: video.snippet.description
+            }} />
+          </Link>
+        ))}
+      </div>
+      <div ref={observerTarget} className="h-20 flex items-center justify-center">
+        {loading && (
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
+        )}
+      </div>
     </div>
   )
 }

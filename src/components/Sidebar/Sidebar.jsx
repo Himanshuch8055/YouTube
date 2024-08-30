@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Home, Compass, PlaySquare, Clock, ThumbsUp, Film, Flame, ShoppingBag, Music2, Gamepad2, Newspaper, Trophy, Lightbulb, Shirt, History, Clapperboard, ThumbsUp as LikeIcon } from 'lucide-react'
+import { Home, Compass, PlaySquare, Clock, ThumbsUp, Film, Flame, ShoppingBag, Music2, Gamepad2, Newspaper, Trophy, Lightbulb, Shirt, History, Clapperboard, ThumbsUp as LikeIcon, Settings, HelpCircle, Flag } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { toggleMenu } from '../../utils/navSlice'
@@ -39,10 +39,11 @@ const Sidebar = () => {
       ]
     },
     {
-      title: 'You',
+      title: 'Library',
       items: [
         { icon: History, label: 'History', path: '/history' },
         { icon: Clapperboard, label: 'Your videos', path: '/your-videos' },
+        { icon: Clock, label: 'Watch later', path: '/watch-later' },
         { icon: LikeIcon, label: 'Liked videos', path: '/liked-videos' },
       ]
     },
@@ -59,6 +60,15 @@ const Sidebar = () => {
         { icon: Lightbulb, label: 'Learning', path: '/learning' },
         { icon: Shirt, label: 'Fashion & Beauty', path: '/fashion-beauty' },
       ]
+    },
+    {
+      title: 'More from YouTube',
+      items: [
+        { icon: Settings, label: 'Settings', path: '/settings' },
+        { icon: Flag, label: 'Report history', path: '/report-history' },
+        { icon: HelpCircle, label: 'Help', path: '/help' },
+        { icon: Flag, label: 'Send feedback', path: '/feedback' },
+      ]
     }
   ], []);
 
@@ -69,7 +79,7 @@ const Sidebar = () => {
     }
   };
 
-  if (!isMenu) return null;
+  if (isMenu) return null;
 
   return (
     <aside className={`
@@ -87,7 +97,7 @@ const Sidebar = () => {
         {sidebarItems.map((section, sectionIndex) => (
           <React.Fragment key={sectionIndex}>
             {section.title && (
-              <h3 className="px-4 py-2 text-sm font-semibold text-gray-500">{section.title}</h3>
+              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">{section.title}</h3>
             )}
             <ul className="mb-4">
               {section.items.map((item, itemIndex) => {
@@ -100,7 +110,7 @@ const Sidebar = () => {
                         isActive ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-100'
                       }`}
                     >
-                      <item.icon className={`w-6 h-6 mr-4 ${isActive ? 'text-red-600' : 'text-gray-600'}`} />
+                      <item.icon className={`w-5 h-5 mr-6 ${isActive ? 'text-red-600' : 'text-gray-600'}`} />
                       <span className={`text-sm ${isActive ? 'text-black' : 'text-gray-700'}`}>{item.label}</span>
                     </button>
                   </li>

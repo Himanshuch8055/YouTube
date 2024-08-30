@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import YTLogo from '../../assets/YouTube-Logo.svg'
 import { Menu, Search, User, Bell, Video, Mic, ArrowLeft } from 'lucide-react'
 import { useDispatch } from 'react-redux'
@@ -33,7 +34,9 @@ const Header = () => {
         <button onClick={() => toggleMenuHandler()} className='p-2 hover:bg-gray-100 rounded-full transition duration-300' aria-label="Menu">
           <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
         </button>
-        <img src={YTLogo} alt="YouTube Logo" className='w-20 sm:w-24 md:w-28 lg:w-32 cursor-pointer' />
+        <Link to="/">
+          <img src={YTLogo} alt="YouTube Logo" className='w-20 sm:w-24 md:w-28 lg:w-32 cursor-pointer' />
+        </Link>
       </div>
       {/* Search bar */}
       <div className={`${showSearch || !isMobile ? 'flex' : 'hidden'} flex-grow max-w-3xl mx-2 sm:mx-4 mt-2 md:mt-0 order-3 md:order-2 w-full md:w-auto`}>
