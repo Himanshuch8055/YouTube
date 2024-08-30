@@ -17,14 +17,17 @@ const VideoContainer = () => {
       setError(null)
       const response = await fetch(`${YOUTUBE_VIDEO_API}&maxResults=50${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch videos')
+        throw new Error(`Failed to fetch videos: ${response.status} ${response.statusText}`)
       }
       const data = await response.json()
+      if (!data || !Array.isArray(data.items)) {
+        throw new Error('Invalid response format')
+      }
       setVideos(prevVideos => [...prevVideos, ...data.items])
       setNextPageToken(data.nextPageToken || '')
     } catch (error) {
       console.error('Error fetching videos:', error)
-      setError('Failed to load videos. Please try again later.')
+      setError(`Failed to load videos: ${error.message}. Please try again later.`)
     } finally {
       setLoading(false)
     }
